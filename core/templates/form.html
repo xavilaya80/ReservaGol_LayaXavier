@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block titulo %}{{ accion }} solicitud · ReservaGol{% endblock %}
+
+{% block contenido %}
+  <h2>{{ accion }} solicitud</h2>
+
+  {% if error %}<div class="msg error">{{ error }}</div>{% endif %}
+
+  <form class="campos" method="post">
+    {% csrf_token %}
+    <label>Nombre de quien reserva
+      <input type="text" name="nombre" value="{{ registro.nombre|default:'' }}" required>
+    </label>
+    <label>Hora solicitada (0 a 23)
+      <input type="number" name="hora" value="{{ registro.hora|default:'' }}" required>
+    </label>
+    <label>Cantidad de jugadores
+      <input type="number" name="jugadores" value="{{ registro.jugadores|default:'' }}" required>
+    </label>
+    <button class="boton" type="submit">Guardar</button>
+    <a class="boton gris" href="{% url 'lista' %}">Cancelar</a>
+  </form>
+
+  <p style="font-size:13px;color:#555;margin-top:16px;">
+    El estado y el motivo no se escriben a mano: los calcula
+    <code>decidir_reserva()</code>, la misma funcion de la ES1.
+  </p>
+{% endblock %}

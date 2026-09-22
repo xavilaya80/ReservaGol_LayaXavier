@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block titulo %}Entrar · ReservaGol{% endblock %}
+
+{% block contenido %}
+  <h2>Iniciar sesion</h2>
+
+  <form class="campos" method="post">
+    {% csrf_token %}
+    <label>Usuario <input type="text" name="username" required></label>
+    <label>Contrasena <input type="password" name="password" required></label>
+    <button class="boton" type="submit">Entrar</button>
+  </form>
+{% endblock %}

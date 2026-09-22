@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titulo %}ReservaGol{% endblock %}</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 900px; margin: 0 auto;
+           padding: 24px 16px; color: #1c1c1c; }
+    header { display: flex; justify-content: space-between; align-items: center;
+             border-bottom: 2px solid #1a7f37; padding-bottom: 12px; margin-bottom: 20px; }
+    h1 { font-size: 20px; margin: 0; }
+    .usuario { font-size: 14px; color: #555; }
+    a { color: #1a7f37; }
+    table { border-collapse: collapse; width: 100%; margin-top: 16px; font-size: 14px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background: #eee; }
+    .msg { padding: 10px 14px; border-radius: 6px; margin-bottom: 12px; font-size: 14px; }
+    .msg.success { background: #e6f4ea; border: 1px solid #1a7f37; }
+    .msg.error { background: #fdecea; border: 1px solid #b30000; }
+    .boton { display: inline-block; padding: 7px 14px; background: #1a7f37; color: #fff;
+             text-decoration: none; border-radius: 5px; border: none; cursor: pointer;
+             font-size: 14px; }
+    .boton.gris { background: #666; }
+    .boton.rojo { background: #b30000; }
+    form.campos label { display: block; margin-bottom: 12px; }
+    form.campos input { display: block; padding: 7px; width: 260px; margin-top: 4px; }
+    .Aceptada { color: #1a7f37; font-weight: bold; }
+    .Rechazada { color: #b35900; font-weight: bold; }
+    .Dato { color: #b30000; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>ReservaGol · solicitudes de cancha</h1>
+  <div class="usuario">
+    {% if user.is_authenticated %}
+      {{ user.username }} ·
+      {% for grupo in user.groups.all %}{{ grupo.name }}{% endfor %}
+      {% if user.is_superuser %}superusuario{% endif %} ·
+      <a href="{% url 'logout' %}">Salir</a>
+    {% endif %}
+  </div>
+</header>
+
+{% if messages %}
+  {% for mensaje in messages %}
+    <div class="msg {{ mensaje.tags }}">{{ mensaje }}</div>
+  {% endfor %}
+{% endif %}
+
+{% block contenido %}{% endblock %}
+
+</body>
+</html>

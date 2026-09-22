@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block titulo %}Eliminar solicitud · ReservaGol{% endblock %}
+
+{% block contenido %}
+  <h2>Eliminar solicitud</h2>
+
+  <p>Vas a eliminar la solicitud de <strong>{{ registro.nombre }}</strong>,
+     de las {{ registro.hora }}:00 con {{ registro.jugadores }} jugadores.</p>
+
+  <p>Es un <strong>borrado logico</strong>: la solicitud desaparece del listado,
+     pero queda guardada en la base de datos y sigue visible en el administrador.</p>
+
+  <form method="post">
+    {% csrf_token %}
+    <button class="boton rojo" type="submit">Si, eliminar</button>
+    <a class="boton gris" href="{% url 'lista' %}">Cancelar</a>
+  </form>
+{% endblock %}

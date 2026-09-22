@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block titulo %}Solicitudes · ReservaGol{% endblock %}
+
+{% block contenido %}
+  <p>
+    {% if puede_crear %}
+      <a class="boton" href="{% url 'crear' %}">Nueva solicitud</a>
+    {% else %}
+      Tu rol solo permite consultar el listado.
+    {% endif %}
+    {% if user.is_superuser %}
+      <a class="boton gris" href="/admin/">Administrador</a>
+    {% endif %}
+  </p>
+
+  {% if registros %}
+    <table>
+      <tr>
+        <th>Nombre</th><th>Hora</th><th>Jugadores</th>
+        <th>Estado</th><th>Motivo</th><th>Fecha</th><th>Acciones</th>
+      </tr>
+      {% for registro in registros %}
+        <tr>
+          <td>{{ registro.nombre }}</td>
+          <td>{{ registro.hora }}:00</td>
+          <td>{{ registro.jugadores }}</td>
+          <td class="{{ registro.estado|slice:':9' }}">{{ registro.estado }}</td>
+          <td>{{ registro.motivo }}</td>
+          <td>{{ registro.fecha|date:"d/m/Y H:i" }}</td>
+          <td>
+            {% if puede_editar %}
+              <a href="{% url 'editar' registro.pk %}">Editar</a> ·
+              <a href="{% url 'eliminar' registro.pk %}">Eliminar</a>
+            {% else %}
+              &mdash;
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+    </table>
+  {% else %}
+    <p>Todavia no hay solicitudes registradas.</p>
+  {% endif %}
+{% endblock %}
