@@ -1,4 +1,4 @@
-# Cómo ejecutar ReservaGol en Windows · Evaluación 2
+# Cómo ejecutar ReservaGol en Windows · Evaluación ES3
 
 Todos los comandos se ejecutan en PowerShell, **dentro de la carpeta que
 contiene `manage.py`**. Si no ves `manage.py` al escribir `dir`, estás en el
@@ -158,10 +158,45 @@ recarga con `Ctrl + Shift + R`.
 **`django.core.exceptions.ImproperlyConfigured`**
 Falta el `.env` o le falta la `SECRET_KEY`. Vuelve al paso 4.
 
+## 11. Probar la API REST
+
+La API vive en `/api/` y convive con las pantallas HTML: ninguna reemplaza a la otra.
+
+Sin credenciales no entra. Esto tiene que responder **401**:
+
+```powershell
+curl.exe http://127.0.0.1:8000/api/registros/
+```
+
+Pide un token con cualquiera de los tres usuarios:
+
+```powershell
+curl.exe -X POST -d "username=gestor&password=TU_CLAVE" http://127.0.0.1:8000/api/token/
+```
+
+Y úsalo en la cabecera de todas las demás peticiones:
+
+```powershell
+curl.exe -H "Authorization: Token 2468758..." http://127.0.0.1:8000/api/registros/
+```
+
+> En PowerShell escribe siempre `curl.exe`. `curl` a secas es un alias de
+> `Invoke-WebRequest` y no acepta estos argumentos.
+
+Desde el navegador, la API documentada está en `http://127.0.0.1:8000/api/docs/`.
+
+Las 23 pruebas completas, con su salida real, están en la carpeta `pruebas/`. Para
+regenerarlas:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File pruebas\probar_api.ps1 > pruebas\salida_curl.txt
+```
+
 ## Antes de entregar
 
 - El `.env` **no** va en el zip.
 - `db.sqlite3`, `venv/` y las carpetas `__pycache__/` tampoco.
 - Sí van: `.env.example`, `requirements.txt`, `core/migrations/0001_initial.py`.
-- El zip se llama `Eva2_LayaXavier.zip` y al abrirlo se ve `manage.py` en el
+- La carpeta `pruebas/` sí va, y ningún token completo dentro de ella.
+- El zip se llama `ES3_LayaXavier.zip` y al abrirlo se ve `manage.py` en el
   primer nivel, no otra carpeta con el mismo nombre dentro.

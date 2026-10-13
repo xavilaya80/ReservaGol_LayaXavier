@@ -1,8 +1,8 @@
 # Plan del proyecto: ReservaGol
 
-> Actualizado para la Evaluacion 2 (Unidad 2). Los datos ya no viven en
-> `datos.json` sino en una base de datos SQLite, y la aplicacion tiene
-> login y roles.
+> Actualizado para la Evaluacion ES3 (Unidad 3). Los datos viven en una base
+> SQLite, la aplicacion tiene login y roles, y ahora expone ademas una API
+> REST bajo `/api/` que consume otro programa en lugar de una persona.
 
 ## 1. Apartado de negocio
 
@@ -31,6 +31,7 @@ No incluye pagos, mapas, API, aplicacion movil, multiples complejos, torneos, re
 5. Reutilizar la misma funcion `decidir_reserva()` de la ES1, sin reescribirla.
 6. Inicio y cierre de sesion, con tres roles y permisos revisados en el servidor.
 7. Administrador de Django configurado con columnas, filtros y buscador.
+8. API REST sobre los mismos modelos, con token y permisos por rol.
 
 **Should (no se programa en esta version)**
 

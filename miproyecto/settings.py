@@ -2,8 +2,11 @@
 
 Los datos viven en una base SQLite. La SECRET_KEY y las contrasenas de los
 usuarios de prueba salen del .env mediante python-decouple.
+
+En la ES3 se suma la API REST bajo /api/, sin tocar las pantallas HTML.
 """
 
+from datetime import timedelta
 from pathlib import Path
 
 from decouple import config
@@ -22,6 +25,12 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+
+    # ES3 - API REST
+    "rest_framework",
+    "rest_framework.authtoken",   # tabla de tokens
+    "drf_spectacular",            # documentacion OpenAPI/Swagger
+
     "core",
 ]
 
@@ -71,3 +80,44 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "lista"
 LOGOUT_REDIRECT_URL = "login"
+
+# --------------------------------------------------------------------------
+# API REST (ES3)
+# --------------------------------------------------------------------------
+# Este bloque es el default de TODO el proyecto. Una vista puede
+# sobreescribirlo, pero el default seguro es que todo pida autenticacion.
+# La justificacion de cada opcion esta en el README.
+
+REST_FRAMEWORK = {
+    # Dos formas de identificarse. No se incluye SessionAuthentication a
+    # proposito: con sesion activa en las pantallas HTML, la API habria
+    # respondido 200 sin token y eso es justo lo que no debe pasar.
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "rest_framework.authentication.TokenAuthentication",
+    ],
+
+    # Sin credenciales no se entra a ningun endpoint.
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
+
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 10,
+
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+
+# El token de DRF no caduca nunca. El JWT si: dura 30 minutos y se renueva
+# con el refresh, sin volver a mandar la contrasena.
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "API de ReservaGol",
+    "DESCRIPTION": "Solicitudes de reserva de una cancha de futbol.",
+    "VERSION": "3.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+}

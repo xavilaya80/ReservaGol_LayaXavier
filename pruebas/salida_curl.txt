@@ -1,0 +1,214 @@
+﻿PRUEBAS DE LA API - ReservaGol ES3
+Fecha: 2026-10-13 10:40
+Servidor: http://127.0.0.1:8011
+
+==========================================================================
+PASO 1 - GET /api/registros/ sin credenciales
+Esperado: 401 Unauthorized
+==========================================================================
+$ curl http://127.0.0.1:8011/api/registros/
+
+{"detail":"Las credenciales de autenticación no se proveyeron."}
+HTTP 401
+
+==========================================================================
+PASO 2 - POST /api/token/ con el usuario gestor (rol admin)
+Esperado: 200 y un token
+==========================================================================
+$ curl -X POST -d username=gestor&password=gestor12345 http://127.0.0.1:8011/api/token/
+
+{"token":"24687585...(truncado)"}
+HTTP 200
+
+Token de gestor obtenido: 24687585...(truncado a proposito)
+
+==========================================================================
+PASO 3 - GET /api/registros/ con token
+Esperado: 200 y la lista paginada
+==========================================================================
+$ curl -H Authorization: Token 24687585...(truncado) http://127.0.0.1:8011/api/registros/
+
+{"count":5,"next":null,"previous":null,"results":[{"id":5,"nombre":"Xavier Laya","hora":20,"jugadores":12,"estado":"Aceptada","motivo":"La solicitud cumple con el horario y la capacidad permitida.","fecha":"2026-10-13T10:40:35.119775-03:00"},{"id":4,"nombre":"Matias","hora":-2,"jugadores":10,"estado":"Dato invalido","motivo":"La hora o la cantidad de jugadores no es valida.","fecha":"2026-10-13T10:40:35.060358-03:00"},{"id":3,"nombre":"Pedro","hora":23,"jugadores":10,"estado":"Rechazada por horario","motivo":"La cancha esta fuera de su horario de funcionamiento.","fecha":"2026-10-13T10:40:35.012301-03:00"},{"id":2,"nombre":"Carlos","hora":20,"jugadores":18,"estado":"Rechazada por capacidad","motivo":"Se supera la capacidad maxima de 14 jugadores.","fecha":"2026-10-13T10:40:34.949532-03:00"},{"id":1,"nombre":"Xavier","hora":19,"jugadores":12,"estado":"Aceptada","motivo":"La solicitud cumple con el horario y la capacidad permitida.","fecha":"2026-10-13T10:40:34.926388-03:00"}]}
+HTTP 200
+
+==========================================================================
+PASO 4 - GET /api/registros/1/ - un registro concreto
+Esperado: 200
+==========================================================================
+$ curl -H Authorization: Token 24687585...(truncado) http://127.0.0.1:8011/api/registros/1/
+
+{"id":1,"nombre":"Xavier","hora":19,"jugadores":12,"estado":"Aceptada","motivo":"La solicitud cumple con el horario y la capacidad permitida.","fecha":"2026-10-13T10:40:34.926388-03:00"}
+HTTP 200
+
+==========================================================================
+PASO 5 - POST valido - hora 19, 12 jugadores
+Esperado: 201 Created y estado Aceptada
+==========================================================================
+$ curl -X POST -H Authorization: Token 24687585...(truncado) -H Content-Type: application/json -d @C:\Users\belux\AppData\Local\Temp\rg_body.json http://127.0.0.1:8011/api/registros/
+
+{"id":6,"nombre":"Ana","hora":19,"jugadores":12,"estado":"Aceptada","motivo":"La solicitud cumple con el horario y la capacidad permitida.","fecha":"2026-10-13T10:40:41.516624-03:00"}
+HTTP 201
+
+==========================================================================
+PASO 6 - POST con 18 jugadores - la regla decide, no el cliente
+Esperado: 201 y Rechazada por capacidad
+==========================================================================
+$ curl -X POST -H Authorization: Token 24687585...(truncado) -H Content-Type: application/json -d @C:\Users\belux\AppData\Local\Temp\rg_body.json http://127.0.0.1:8011/api/registros/
+
+{"id":7,"nombre":"Bruno","hora":20,"jugadores":18,"estado":"Rechazada por capacidad","motivo":"Se supera la capacidad maxima de 14 jugadores.","fecha":"2026-10-13T10:40:41.598668-03:00"}
+HTTP 201
+
+==========================================================================
+PASO 7 - POST intentando imponer el estado
+Esperado: 201, pero el estado lo decide la regla igual
+==========================================================================
+$ curl -X POST -H Authorization: Token 24687585...(truncado) -H Content-Type: application/json -d @C:\Users\belux\AppData\Local\Temp\rg_body.json http://127.0.0.1:8011/api/registros/
+
+{"id":8,"nombre":"Tramposo","hora":3,"jugadores":10,"estado":"Rechazada por horario","motivo":"La cancha esta fuera de su horario de funcionamiento.","fecha":"2026-10-13T10:40:41.667083-03:00"}
+HTTP 201
+
+==========================================================================
+PASO 8 - POST con el nombre vacio
+Esperado: 400 Bad Request
+==========================================================================
+$ curl -X POST -H Authorization: Token 24687585...(truncado) -H Content-Type: application/json -d @C:\Users\belux\AppData\Local\Temp\rg_body.json http://127.0.0.1:8011/api/registros/
+
+{"nombre":["Este campo no puede estar en blanco."]}
+HTTP 400
+
+==========================================================================
+PASO 9 - POST con la hora en letras
+Esperado: 400 Bad Request
+==========================================================================
+$ curl -X POST -H Authorization: Token 24687585...(truncado) -H Content-Type: application/json -d @C:\Users\belux\AppData\Local\Temp\rg_body.json http://127.0.0.1:8011/api/registros/
+
+{"hora":["Introduzca un número entero válido."]}
+HTTP 400
+
+==========================================================================
+PASO 10 - PATCH /api/registros/1/ - cambiar la hora a 3
+Esperado: 200 y el estado se recalcula solo
+==========================================================================
+$ curl -X PATCH -H Authorization: Token 24687585...(truncado) -H Content-Type: application/json -d @C:\Users\belux\AppData\Local\Temp\rg_body.json http://127.0.0.1:8011/api/registros/1/
+
+{"id":1,"nombre":"Xavier","hora":3,"jugadores":12,"estado":"Rechazada por horario","motivo":"La cancha esta fuera de su horario de funcionamiento.","fecha":"2026-10-13T10:40:34.926388-03:00"}
+HTTP 200
+
+==========================================================================
+PASO 11 - GET /api/registros/9999/ - id que no existe
+Esperado: 404 Not Found
+==========================================================================
+$ curl -H Authorization: Token 24687585...(truncado) http://127.0.0.1:8011/api/registros/9999/
+
+{"detail":"No Registro matches the given query."}
+HTTP 404
+
+==========================================================================
+PASO 12 - El usuario lector (rol viewer) pide su token
+Esperado: 200
+==========================================================================
+$ curl -X POST -d username=lector&password=lector12345 http://127.0.0.1:8011/api/token/
+
+{"token":"f3b3a605...(truncado)"}
+HTTP 200
+
+==========================================================================
+PASO 13 - lector hace GET
+Esperado: 200 - el viewer si puede leer
+==========================================================================
+$ curl -H Authorization: Token f3b3a605...(truncado) http://127.0.0.1:8011/api/registros/
+
+{"count":8,"next":null,"previous":null,"results":[{"id":8,"nombre":"Tramposo","hora":3,"jugadores":10,"estado":"Rechazada por horario","motivo":"La cancha esta fuera de su horario de funcionamiento.","fecha":"2026-10-13T10:40:41.667083-03:00"},{"id":7,"nombre":"Bruno","hora":20,"jugadores":18,"estado":"Rechazada por capacidad","motivo":"Se supera la capacidad maxima de 14 jugadores.","fecha":"2026-10-13T10:40:41.598668-03:00"},{"id":6,"nombre":"Ana","hora":19,"jugadores":12,"estado":"Aceptada","motivo":"La solicitud cumple con el horario y la capacidad permitida.","fecha":"2026-10-13T10:40:41.516624-03:00"},{"id":5,"nombre":"Xavier Laya","hora":20,"jugadores":12,"estado":"Aceptada","motivo":"La solicitud cumple con el horario y la capacidad permitida.","fecha":"2026-10-13T10:40:35.119775-03:00"},{"id":4,"nombre":"Matias","hora":-2,"jugadores":10,"estado":"Dato invalido","motivo":"La hora o la cantidad de jugadores no es valida.","fecha":"2026-10-13T10:40:35.060358-03:00"},{"id":3,"nombre":"Pedro","hora":23,"jugadores":10,"estado":"Rechazada por horario","motivo":"La cancha esta fuera de su horario de funcionamiento.","fecha":"2026-10-13T10:40:35.012301-03:00"},{"id":2,"nombre":"Carlos","hora":20,"jugadores":18,"estado":"Rechazada por capacidad","motivo":"Se supera la capacidad maxima de 14 jugadores.","fecha":"2026-10-13T10:40:34.949532-03:00"},{"id":1,"nombre":"Xavier","hora":3,"jugadores":12,"estado":"Rechazada por horario","motivo":"La cancha esta fuera de su horario de funcionamiento.","fecha":"2026-10-13T10:40:34.926388-03:00"}]}
+HTTP 200
+
+==========================================================================
+PASO 14 - lector intenta POST
+Esperado: 403 Forbidden - tiene token, pero no el rol
+==========================================================================
+$ curl -X POST -H Authorization: Token f3b3a605...(truncado) -H Content-Type: application/json -d @C:\Users\belux\AppData\Local\Temp\rg_body.json http://127.0.0.1:8011/api/registros/
+
+{"detail":"Tu rol no permite esta operacion."}
+HTTP 403
+
+==========================================================================
+PASO 15 - lector intenta DELETE
+Esperado: 403 Forbidden
+==========================================================================
+$ curl -X DELETE -H Authorization: Token f3b3a605...(truncado) http://127.0.0.1:8011/api/registros/2/
+
+{"detail":"Tu rol no permite esta operacion."}
+HTTP 403
+
+==========================================================================
+PASO 16 - operador (rol normal) hace POST
+Esperado: 201 - el normal si puede crear
+==========================================================================
+$ curl -X POST -H Authorization: Token 01a17434...(truncado) -H Content-Type: application/json -d @C:\Users\belux\AppData\Local\Temp\rg_body.json http://127.0.0.1:8011/api/registros/
+
+{"id":9,"nombre":"Operador","hora":18,"jugadores":10,"estado":"Aceptada","motivo":"La solicitud cumple con el horario y la capacidad permitida.","fecha":"2026-10-13T10:40:46.220023-03:00"}
+HTTP 201
+
+==========================================================================
+PASO 17 - operador intenta DELETE
+Esperado: 403 Forbidden - borrar es solo de admin
+==========================================================================
+$ curl -X DELETE -H Authorization: Token 01a17434...(truncado) http://127.0.0.1:8011/api/registros/2/
+
+{"detail":"Tu rol no permite esta operacion."}
+HTTP 403
+
+==========================================================================
+PASO 18 - gestor hace DELETE /api/registros/2/
+Esperado: 204 No Content
+==========================================================================
+$ curl -X DELETE -H Authorization: Token 24687585...(truncado) http://127.0.0.1:8011/api/registros/2/
+
+
+HTTP 204
+
+==========================================================================
+PASO 19 - GET /api/registros/2/ despues del DELETE
+Esperado: 404 - ya no se lista
+==========================================================================
+$ curl -H Authorization: Token 24687585...(truncado) http://127.0.0.1:8011/api/registros/2/
+
+{"detail":"No Registro matches the given query."}
+HTTP 404
+
+==========================================================================
+PASO 20 - POST /api/jwt/ - token que si caduca
+Esperado: 200 con access y refresh
+==========================================================================
+$ curl -X POST -H Content-Type: application/json -d @C:\Users\belux\AppData\Local\Temp\rg_body.json http://127.0.0.1:8011/api/jwt/
+
+{"refresh":"eyJhbGciOiJI...(truncado)","access":"eyJhbGciOiJI...(truncado)"}
+HTTP 200
+
+==========================================================================
+PASO 21 - GET /api/registros/ con el JWT en la cabecera
+Esperado: 200
+==========================================================================
+$ curl -H Authorization: Bearer eyJhbGciOiJI...(truncado) http://127.0.0.1:8011/api/registros/
+
+{"count":8,"next":null,"previous":null,"results":[{"id":9,"nombre":"Operador","hora":18,"jugadores":10,"estado":"Aceptada","motivo":"La solicitud cumple con el horario y la capacidad permitida.","fecha":"2026-10-13T10:40:46.220023-03:00"},{"id":8,"nombre":"Tramposo","hora":3,"jugadores":10,"estado":"Rechazada por horario","motivo":"La cancha esta fuera de su horario de funcionamiento.","fecha":"2026-10-13T10:40:41.667083-03:00"},{"id":7,"nombre":"Bruno","hora":20,"jugadores":18,"estado":"Rechazada por capacidad","motivo":"Se supera la capacidad maxima de 14 jugadores.","fecha":"2026-10-13T10:40:41.598668-03:00"},{"id":6,"nombre":"Ana","hora":19,"jugadores":12,"estado":"Aceptada","motivo":"La solicitud cumple con el horario y la capacidad permitida.","fecha":"2026-10-13T10:40:41.516624-03:00"},{"id":5,"nombre":"Xavier Laya","hora":20,"jugadores":12,"estado":"Aceptada","motivo":"La solicitud cumple con el horario y la capacidad permitida.","fecha":"2026-10-13T10:40:35.119775-03:00"},{"id":4,"nombre":"Matias","hora":-2,"jugadores":10,"estado":"Dato invalido","motivo":"La hora o la cantidad de jugadores no es valida.","fecha":"2026-10-13T10:40:35.060358-03:00"},{"id":3,"nombre":"Pedro","hora":23,"jugadores":10,"estado":"Rechazada por horario","motivo":"La cancha esta fuera de su horario de funcionamiento.","fecha":"2026-10-13T10:40:35.012301-03:00"},{"id":1,"nombre":"Xavier","hora":3,"jugadores":12,"estado":"Rechazada por horario","motivo":"La cancha esta fuera de su horario de funcionamiento.","fecha":"2026-10-13T10:40:34.926388-03:00"}]}
+HTTP 200
+
+==========================================================================
+PASO 22 - POST /api/jwt/refresh/ - renovar sin mandar la contrasena
+Esperado: 200 con un access nuevo
+==========================================================================
+$ curl -X POST -H Content-Type: application/json -d @C:\Users\belux\AppData\Local\Temp\rg_body.json http://127.0.0.1:8011/api/jwt/refresh/
+
+{"access":"eyJhbGciOiJI...(truncado)"}
+HTTP 200
+
+==========================================================================
+PASO 23 - GET /registros/ - la pantalla HTML de la ES2
+Esperado: 302 a /login/: sigue funcionando
+==========================================================================
+$ curl -o NUL http://127.0.0.1:8011/registros/
+
+
+HTTP 302
+
+FIN DE LAS PRUEBAS
